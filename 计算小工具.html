@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #333333;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .calculator-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .calculator-btn {
+            width: 100%;
+            padding: 18px 20px;
+            margin-bottom: 15px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #333333;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .calculator-btn:hover {
+            background-color: #f8f8f8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .calculator-btn:active {
+            transform: translateY(0);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            width: 90%;
+            max-width: 400px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            color: #333333;
+            font-weight: 500;
+        }
+        
+        .close-btn {
+            font-size: 24px;
+            color: #999999;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666666;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .calculate-btn:hover {
+            background-color: #3a7bc8;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .result-title {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+        
+        .result-value {
+            font-size: 24px;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+        
+        .result-evaluation {
+            margin-top: 8px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>请选择你想计算的内容</h1>
+    </div>
+    
+    <div class="calculator-container">
+        <button class="calculator-btn" id="bmi-btn">身体质量指数</button>
+        <button class="calculator-btn" id="bmr-btn">基础代谢率</button>
+        <button class="calculator-btn" id="sleep-btn">睡眠周期计算</button>
+        <button class="calculator-btn" id="running-btn">跑步消耗卡路里</button>
+        <button class="calculator-btn" id="water-btn">水合需求</button>
+        <button class="calculator-btn" id="brain-btn">脑力续航</button>
+        <button class="calculator-btn" id="commute-btn">可忍受通勤时间</button>
+    </div>
+    
+    <!-- BMI 计算模态框 -->
+    <div class="modal" id="bmi-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">身体质量指数(BMI)计算</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="bmi-height">身高 (cm)</label>
+                <input type="number" id="bmi-height" placeholder="请输入您的身高">
+            </div>
+            <div class="input-group">
+                <label for="bmi-weight">体重 (kg)</label>
+                <input type="number" id="bmi-weight" placeholder="请输入您的体重">
+            </div>
+            <button class="calculate-btn" id="calculate-bmi">计算</button>
+            <div class="result" id="bmi-result">
+                <div class="result-title">您的BMI指数:</div>
+                <div class="result-value" id="bmi-value"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- BMR 计算模态框 -->
+    <div class="modal" id="bmr-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">基础代谢率(BMR)计算</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="bmr-gender">性别</label>
+                <select id="bmr-gender">
+                    <option value="male">男性</option>
+                    <option value="female">女性</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="bmr-age">年龄 (岁)</label>
+                <input type="number" id="bmr-age" placeholder="请输入您的年龄">
+            </div>
+            <div class="input-group">
+                <label for="bmr-height">身高 (cm)</label>
+                <input type="number" id="bmr-height" placeholder="请输入您的身高">
+            </div>
+            <div class="input-group">
+                <label for="bmr-weight">体重 (kg)</label>
+                <input type="number" id="bmr-weight" placeholder="请输入您的体重">
+            </div>
+            <button class="calculate-btn" id="calculate-bmr">计算</button>
+            <div class="result" id="bmr-result">
+                <div class="result-title">您的基础代谢率:</div>
+                <div class="result-value" id="bmr-value"></div>
+                <div class="result-evaluation" id="bmr-evaluation"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 睡眠周期计算模态框 -->
+    <div class="modal" id="sleep-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">睡眠周期计算</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="sleep-time">计划起床时间</label>
+                <input type="time" id="sleep-time" value="07:00">
+            </div>
+            <div class="input-group">
+                <label for="sleep-cycles">睡眠周期数 (每个周期约90分钟)</label>
+                <select id="sleep-cycles">
+                    <option value="4">4个周期 (6小时)</option>
+                    <option value="5" selected>5个周期 (7.5小时)</option>
+                    <option value="6">6个周期 (9小时)</option>
+                </select>
+            </div>
+            <button class="calculate-btn" id="calculate-sleep">计算</button>
+            <div class="result" id="sleep-result">
+                <div class="result-title">建议入睡时间:</div>
+                <div class="result-value" id="sleep-value"></div>
+                <div class="result-evaluation">(包括14分钟入睡时间)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 跑步消耗卡路里模态框 -->
+    <div class="modal" id="running-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">跑步消耗卡路里</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="running-weight">体重 (kg)</label>
+                <input type="number" id="running-weight" placeholder="请输入您的体重">
+            </div>
+            <div class="input-group">
+                <label for="running-distance">跑步距离 (km)</label>
+                <input type="number" id="running-distance" placeholder="请输入跑步距离">
+            </div>
+            <div class="input-group">
+                <label for="running-pace">配速 (分钟/公里)</label>
+                <input type="number" id="running-pace" placeholder="请输入您的配速" value="6">
+            </div>
+            <button class="calculate-btn" id="calculate-running">计算</button>
+            <div class="result" id="running-result">
+                <div class="result-title">预计消耗卡路里:</div>
+                <div class="result-value" id="running-value"></div>
+                <div class="result-evaluation" id="running-evaluation"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 水合需求模态框 -->
+    <div class="modal" id="water-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">水合需求计算</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="water-weight">体重 (kg)</label>
+                <input type="number" id="water-weight" placeholder="请输入您的体重">
+            </div>
+            <div class="input-group">
+                <label for="water-activity">活动水平</label>
+                <select id="water-activity">
+                    <option value="1.2">久坐 (办公室工作)</option>
+                    <option value="1.375" selected>轻度活动 (每周1-3次运动)</option>
+                    <option value="1.55">中度活动 (每周3-5次运动)</option>
+                    <option value="1.725">高强度活动 (每天运动)</option>
+                    <option value="1.9">极高强度 (职业运动员)</option>
+                </select>
+            </div>
+            <button class="calculate-btn" id="calculate-water">计算</button>
+            <div class="result" id="water-result">
+                <div class="result-title">每日建议饮水量:</div>
+                <div class="result-value" id="water-value"></div>
+                <div class="result-evaluation">(包括食物中的水分)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 脑力续航模态框 -->
+    <div class="modal" id="brain-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">脑力续航计算</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="brain-sleep">昨晚睡眠时间 (小时)</label>
+                <input type="number" id="brain-sleep" placeholder="请输入睡眠时间" step="0.5" min="0" max="12" value="7.5">
+            </div>
+            <div class="input-group">
+                <label for="brain-stress">当前压力水平 (1-10)</label>
+                <input type="number" id="brain-stress" placeholder="1-10" min="1" max="10" value="5">
+            </div>
+            <div class="input-group">
+                <label for="brain-nutrition">营养状态 (1-10)</label>
+                <input type="number" id="brain-nutrition" placeholder="1-10" min="1" max="10" value="7">
+            </div>
+            <button class="calculate-btn" id="calculate-brain">计算</button>
+            <div class="result" id="brain-result">
+                <div class="result-title">预计高效工作时间:</div>
+                <div class="result-value" id="brain-value"></div>
+                <div class="result-evaluation" id="brain-evaluation"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 可忍受通勤时间模态框 -->
+    <div class="modal" id="commute-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">可忍受通勤时间计算</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="input-group">
+                <label for="commute-salary">月薪 (元)</label>
+                <input type="number" id="commute-salary" placeholder="请输入您的月薪">
+            </div>
+            <div class="input-group">
+                <label for="commute-happiness">工作满意度 (1-10)</label>
+                <input type="number" id="commute-happiness" placeholder="1-10" min="1" max="10" value="7">
+            </div>
+            <div class="input-group">
+                <label for="commute-transport">通勤方式</label>
+                <select id="commute-transport">
+                    <option value="1">步行/自行车</option>
+                    <option value="0.8">地铁</option>
+                    <option value="0.6" selected>公交</option>
+                    <option value="0.4">自驾</option>
+                    <option value="0.2">拼车</option>
+                </select>
+            </div>
+            <button class="calculate-btn" id="calculate-commute">计算</button>
+            <div class="result" id="commute-result">
+                <div class="result-title">建议最大通勤时间:</div>
+                <div class="result-value" id="commute-value"></div>
+                <div class="result-evaluation" id="commute-evaluation"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 获取DOM元素
+        const bmiBtn = document.getElementById('bmi-btn');
+        const bmrBtn = document.getElementById('bmr-btn');
+        const sleepBtn = document.getElementById('sleep-btn');
+        const runningBtn = document.getElementById('running-btn');
+        const waterBtn = document.getElementById('water-btn');
+        const brainBtn = document.getElementById('brain-btn');
+        const commuteBtn = document.getElementById('commute-btn');
+        
+        const bmiModal = document.getElementById('bmi-modal');
+        const bmrModal = document.getElementById('bmr-modal');
+        const sleepModal = document.getElementById('sleep-modal');
+        const runningModal = document.getElementById('running-modal');
+        const waterModal = document.getElementById('water-modal');
+        const brainModal = document.getElementById('brain-modal');
+        const commuteModal = document.getElementById('commute-modal');
+        
+        const closeBtns = document.querySelectorAll('.close-btn');
+        
+        // 打开计算器模态框
+        bmiBtn.addEventListener('click', () => bmiModal.style.display = 'flex');
+        bmrBtn.addEventListener('click', () => bmrModal.style.display = 'flex');
+        sleepBtn.addEventListener('click', () => sleepModal.style.display = 'flex');
+        runningBtn.addEventListener('click', () => runningModal.style.display = 'flex');
+        waterBtn.addEventListener('click', () => waterModal.style.display = 'flex');
+        brainBtn.addEventListener('click', () => brainModal.style.display = 'flex');
+        commuteBtn.addEventListener('click', () => commuteModal.style.display = 'flex');
+        
+        // 关闭模态框
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal').style.display = 'none';
+            });
+        });
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+        
+        // 1. BMI计算
+        document.getElementById('calculate-bmi').addEventListener('click', () => {
+            const height = parseFloat(document.getElementById('bmi-height').value) / 100; // 转换为米
+            const weight = parseFloat(document.getElementById('bmi-weight').value);
+            
+            if (height && weight) {
+                const bmi = (weight / (height * height)).toFixed(1);
+                document.getElementById('bmi-value').textContent = bmi;
+                document.getElementById('bmi-result').style.display = 'block';
+                
+                // 评价
+                let evaluation = '';
+                if (bmi < 18.5) {
+                    evaluation = '偏瘦 - 建议适当增加营养摄入';
+                } else if (bmi >= 18.5 && bmi < 24) {
+                    evaluation = '正常 - 保持健康生活方式';
+                } else if (bmi >= 24 && bmi < 28) {
+                    evaluation = '超重 - 建议适当控制饮食和增加运动';
+                } else {
+                    evaluation = '肥胖 - 建议咨询医生或营养师制定减重计划';
+                }
+                
+                updateEvaluation('bmi-result', evaluation);
+            } else {
+                alert('请输入有效的身高和体重值');
+            }
+        });
+        
+        // 2. 基础代谢率(BMR)计算
+        document.getElementById('calculate-bmr').addEventListener('click', () => {
+            const gender = document.getElementById('bmr-gender').value;
+            const age = parseFloat(document.getElementById('bmr-age').value);
+            const height = parseFloat(document.getElementById('bmr-height').value);
+            const weight = parseFloat(document.getElementById('bmr-weight').value);
+            
+            if (age && height && weight) {
+                let bmr;
+                // Mifflin-St Jeor公式
+                if (gender === 'male') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                }
+                
+                document.getElementById('bmr-value').textContent = Math.round(bmr) + ' 千卡/天';
+                document.getElementById('bmr-result').style.display = 'block';
+                
+                // 评价
+                let evaluation = `这是您静息状态下每天消耗的热量。根据活动水平，实际需求约为:
+                \n- 久坐: ${Math.round(bmr * 1.2)} 千卡
+                \n- 轻度活动: ${Math.round(bmr * 1.375)} 千卡
+                \n- 中度活动: ${Math.round(bmr * 1.55)} 千卡
+                \n- 高强度活动: ${Math.round(bmr * 1.725)} 千卡`;
+                
+                updateEvaluation('bmr-result', evaluation);
+            } else {
+                alert('请输入完整的个人信息');
+            }
+        });
+        
+        // 3. 睡眠周期计算
+        document.getElementById('calculate-sleep').addEventListener('click', () => {
+            const wakeTime = document.getElementById('sleep-time').value;
+            const cycles = parseInt(document.getElementById('sleep-cycles').value);
+            
+            if (wakeTime) {
+                const [hours, minutes] = wakeTime.split(':').map(Number);
+                const wakeDate = new Date();
+                wakeDate.setHours(hours, minutes, 0, 0);
+                
+                // 每个周期90分钟 + 14分钟入睡时间
+                const sleepTime = new Date(wakeDate.getTime() - (cycles * 90 + 14) * 60000);
+                
+                const sleepHours = sleepTime.getHours().toString().padStart(2, '0');
+                const sleepMinutes = sleepTime.getMinutes().toString().padStart(2, '0');
+                
+                document.getElementById('sleep-value').textContent = `${sleepHours}:${sleepMinutes}`;
+                document.getElementById('sleep-result').style.display = 'block';
+            }
+        });
+        
+        // 4. 跑步消耗卡路里
+        document.getElementById('calculate-running').addEventListener('click', () => {
+            const weight = parseFloat(document.getElementById('running-weight').value);
+            const distance = parseFloat(document.getElementById('running-distance').value);
+            const pace = parseFloat(document.getElementById('running-pace').value);
+            
+            if (weight && distance && pace) {
+                // METs方法计算卡路里
+                const met = 1.0 / pace * 60 * 0.2 + 4.0; // 基于配速估算MET值
+                const calories = met * weight * distance / 1000 * 1.036; // 1.036是转换系数
+                
+                document.getElementById('running-value').textContent = Math.round(calories) + ' 千卡';
+                document.getElementById('running-result').style.display = 'block';
+                
+                // 评价
+                let evaluation = `相当于消耗了约${Math.round(calories / 7700 * 1000)}克脂肪`;
+                updateEvaluation('running-result', evaluation);
+            } else {
+                alert('请输入完整的跑步信息');
+            }
+        });
+        
+        // 5. 水合需求
+        document.getElementById('calculate-water').addEventListener('click', () => {
+            const weight = parseFloat(document.getElementById('water-weight').value);
+            const activity = parseFloat(document.getElementById('water-activity').value);
+            
+            if (weight) {
+                // 基础水合需求 + 活动水平调整
+                const water = (weight * 30 * activity / 1.375).toFixed(0);
+                
+                document.getElementById('water-value').textContent = water + ' 毫升';
+                document.getElementById('water-result').style.display = 'block';
+            } else {
+                alert('请输入您的体重');
+            }
+        });
+        
+        // 6. 脑力续航
+        document.getElementById('calculate-brain').addEventListener('click', () => {
+            const sleep = parseFloat(document.getElementById('brain-sleep').value);
+            const stress = parseFloat(document.getElementById('brain-stress').value);
+            const nutrition = parseFloat(document.getElementById('brain-nutrition').value);
+            
+            if (sleep && stress && nutrition) {
+                // 综合评分算法
+                const score = (sleep / 8 * 40) + ((11 - stress) / 10 * 30) + (nutrition / 10 * 30);
+                const hours = (score / 100 * 8).toFixed(1);
+                
+                document.getElementById('brain-value').textContent = hours + ' 小时';
+                document.getElementById('brain-result').style.display = 'block';
+                
+                // 评价
+                let evaluation = '';
+                if (score > 80) {
+                    evaluation = '状态极佳 - 适合处理复杂任务';
+                } else if (score > 60) {
+                    evaluation = '状态良好 - 适合常规工作';
+                } else if (score > 40) {
+                    evaluation = '状态一般 - 建议适当休息';
+                } else {
+                    evaluation = '状态较差 - 建议优先休息恢复';
+                }
+                
+                updateEvaluation('brain-result', evaluation);
+            } else {
+                alert('请输入完整的评估信息');
+            }
+        });
+        
+        // 7. 可忍受通勤时间
+        document.getElementById('calculate-commute').addEventListener('click', () => {
+            const salary = parseFloat(document.getElementById('commute-salary').value);
+            const happiness = parseFloat(document.getElementById('commute-happiness').value);
+            const transport = parseFloat(document.getElementById('commute-transport').value);
+            
+            if (salary && happiness) {
+                // 基于工资和工作满意度的算法
+                const baseTime = (salary / 10000) * (happiness / 5) * 60 * transport;
+                const minutes = Math.min(Math.round(baseTime), 180); // 不超过3小时
+                
+                document.getElementById('commute-value').textContent = minutes + ' 分钟';
+                document.getElementById('commute-result').style.display = 'block';
+                
+                // 评价
+                let evaluation = '';
+                if (minutes > 90) {
+                    evaluation = '通勤时间较长 - 考虑搬家或调整工作';
+                } else if (minutes > 60) {
+                    evaluation = '通勤时间适中 - 可利用通勤时间学习或放松';
+                } else {
+                    evaluation = '通勤时间理想 - 对工作生活平衡影响较小';
+                }
+                
+                updateEvaluation('commute-result', evaluation);
+            } else {
+                alert('请输入薪资和工作满意度');
+            }
+        });
+        
+        // 更新评价函数
+        function updateEvaluation(modalId, text) {
+            const evaluationElement = document.createElement('div');
+            evaluationElement.className = 'result-evaluation';
+            evaluationElement.textContent = text;
+            
+            // 移除旧的评价（如果有）
+            const resultDiv = document.getElementById(modalId);
+            const oldEvaluation = resultDiv.querySelector('.result-evaluation');
+            if (oldEvaluation) {
+                oldEvaluation.remove();
+            }
+            
+            resultDiv.appendChild(evaluationElement);
+        }
+    </script>
+</body>
+</html>
